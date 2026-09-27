@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudioFlow AI — Demo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080e1b;color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:850px;margin:auto;padding:24px}.hero,.card{background:#121a2d;border:1px solid #293858;border-radius:20px;padding:22px;margin:14px 0}
+h1{font-size:32px;margin:0 0 8px}.muted{color:#aeb8cc}textarea{width:100%;min-height:130px;padding:14px;background:#0a1020;color:#fff;border:1px solid #344361;border-radius:12px;font-size:16px}
+button{background:#6c5ce7;color:#fff;border:0;border-radius:12px;padding:13px 20px;font-weight:bold;margin-top:12px;cursor:pointer}
+.bar{height:10px;background:#263452;border-radius:10px;overflow:hidden;margin-top:15px}.fill{height:100%;width:0;background:#6c5ce7;transition:.4s}.video{width:100%;max-height:700px;border-radius:15px;margin-top:15px}
+</style></head><body><div class="wrap">
+<div class="hero"><h1>🎬 StudioFlow AI</h1><p class="muted">نسخة تجريبية — أول فيديو فعلي بدون API</p>
+<p>اكتب فكرة بسيطة، والمنصة هتعمل دورة إنتاج تجريبية وتطلع فيديو MP4.</p>
+<textarea id="brief" placeholder="مثال: عايز فيديو قصير يشرح فكرة StudioFlow AI"></textarea>
+<button onclick="start()">🚀 اعمل أول فيديو</button>
+<div class="bar"><div class="fill" id="fill"></div></div><p id="status" class="muted"></p></div>
+<div class="card" id="result" style="display:none"><h2>🎉 الفيديو الأول</h2><video id="video" class="video" controls></video><p><a id="link" target="_blank">فتح الفيديو في صفحة مستقلة</a></p></div>
+</div>
+<script>
+let id,t;
+async function start(){
+ const brief=document.getElementById('brief').value.trim()||"فيديو تجريبي عن StudioFlow AI";
+ const c=await fetch('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief})});
+ const p=await c.json();id=p.id;
+ await fetch('/api/projects/'+id+'/generate',{method:'POST'});
+ t=setInterval(check,300);
+}
+async function check(){
+ const p=await (await fetch('/api/projects/'+id)).json();
+ document.getElementById('fill').style.width=p.progress+'%';
+ document.getElementById('status').textContent=p.status==='completed'?'✅ اكتمل الفيديو':`⏳ جاري الإنتاج — ${p.progress}%`;
+ if(p.status==='completed'){
+   clearInterval(t);document.getElementById('result').style.display='block';
+   document.getElementById('video').src=p.video;
+   document.getElementById('link').href=p.video;
+ }
+}
+</script></body></html>
